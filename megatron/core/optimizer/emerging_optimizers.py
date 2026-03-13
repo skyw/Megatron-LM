@@ -29,7 +29,9 @@ try:
     )
     from emerging_optimizers.orthogonalized_optimizers.muon_utils import newton_schulz_tp
 
-    # It is necessary to import SOAP for the registry to work.
+    # Registration happens on import. It is necessary to import class for the registry to work
+    # even if the imported class is not used directly.
+    from emerging_optimizers.scalar_optimizers import Lion  # pylint: disable=unused-import
     from emerging_optimizers.soap import SOAP  # pylint: disable=unused-import
 
     HAVE_EMERGING_OPTIMIZERS = True
@@ -286,7 +288,8 @@ _EMERGING_OPTIMIZERS = {
 # Register soap with default config
 # TODO(skyw): register all emerging optimizers.
 if HAVE_EMERGING_OPTIMIZERS:
-    for eopt_name in ["soap"]:
+    # Only imported optimizers will be in registry.
+    for eopt_name in registry.get_optimizer_name_list():
         if eopt_name in _EMERGING_OPTIMIZERS:
             continue
         _EMERGING_OPTIMIZERS[eopt_name] = EmergingOptimizerEntry(
