@@ -70,9 +70,7 @@ def _create_emerging_optimizer(config, param_groups, eopt_name, model_chunks, pg
     if entry.config_to_kwargs is not None:
         eopt_kwargs = entry.config_to_kwargs(config, model_chunks, pg_collection)
     else:
-        eopt_kwargs = _default_adam_based_eopt_config_to_kwargs(
-            eopt_name, config, model_chunks, pg_collection
-        )
+        eopt_kwargs = _kwargs_from_config(eopt_name, config, model_chunks, pg_collection)
     optimizer = entry.optimizer_cls(param_groups, **eopt_kwargs)
     return optimizer, entry.init_state_fn
 
@@ -245,6 +243,8 @@ def _kwargs_from_config(optimizer_cls: type, prefix: str, config) -> Dict[str, A
     skip_params = {"self", "params"}
     sig = inspect.signature(optimizer_cls.__init__)
     kwargs: Dict[str, Any] = {}
+    if "betas" in sig.parameters:
+        kwargs["betas"] = (config.adam_beta1, config.adam_beta2)
     for name in sig.parameters:
         if name in skip_params:
             continue
@@ -262,15 +262,6 @@ def _muon_config_to_kwargs(config, model_chunks, pg_collection) -> Dict[str, Any
     kwargs["is_qkv_fn"] = lambda p: getattr(p, "is_qkv", False)
     kwargs["qkv_split_shapes"] = _get_qkv_split_shapes(model_chunks[0].config)
     kwargs["pg_collection"] = pg_collection
-    return kwargs
-
-
-def _default_adam_based_eopt_config_to_kwargs(
-    eopt_name, config, model_chunks, pg_collection
-) -> Dict[str, Any]:
-    """Convert OptimizerConfig to default emerging optimizer constructor kwargs."""
-    kwargs = _kwargs_from_config(registry.get_optimizer_cls(eopt_name), eopt_name, config)
-    kwargs["betas"] = (config.adam_beta1, config.adam_beta2)
     return kwargs
 
 
