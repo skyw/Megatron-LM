@@ -21,10 +21,7 @@ from emerging_optimizers.orthogonalized_optimizers import (
     OrthogonalizedOptimizer,
     get_muon_scale_factor,
 )
-from emerging_optimizers.orthogonalized_optimizers.muon_utils import (
-    NSCoeffT,
-    newton_schulz_tp,
-)
+from emerging_optimizers.orthogonalized_optimizers.muon_utils import NSCoeffT, newton_schulz_tp
 
 # It is necessary to import optimizers for the registry to work.
 from emerging_optimizers.scalar_optimizers import Lion  # pylint: disable=unused-import
@@ -597,6 +594,11 @@ def _default_adam_based_eopt_config_to_kwargs(
 def _rekls_config_to_kwargs(config, model_chunks, pg_collection) -> Dict[str, Any]:
     """Convert OptimizerConfig to TpRekls constructor kwargs."""
     kwargs = _kwargs_from_config(TpRekls, "rekls", config)
+    kwargs.setdefault("betas", (config.adam_beta1, config.adam_beta2))
+    kwargs.setdefault("eps", config.adam_eps)
+    kwargs.setdefault("weight_decay_method", "decoupled" if config.decoupled_weight_decay else "l2")
+    if hasattr(config, "soap_shampoo_beta"):
+        kwargs.setdefault("shampoo_beta", config.soap_shampoo_beta)
     kwargs["pg_collection"] = pg_collection
     return kwargs
 
