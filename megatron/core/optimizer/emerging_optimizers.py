@@ -23,7 +23,6 @@ from emerging_optimizers.orthogonalized_optimizers import (
 )
 from emerging_optimizers.orthogonalized_optimizers.muon_utils import (
     NSCoeffT,
-    get_muon_scale_factor,
     newton_schulz_tp,
 )
 
@@ -397,7 +396,7 @@ class TpRekls(opt_mixin.WeightDecayMixin, optim.Optimizer):
     def _get_partition_dim(p: torch.Tensor) -> int | None:
         """Returns ``p.partition_dim`` if set, else ``None`` (param is treated as replicated)."""
         partition_dim = getattr(p, "partition_dim", None)
-        if partition_dim is None:
+        if partition_dim is None or partition_dim == -1:
             return None
         if partition_dim not in (0, 1):
             raise ValueError(f"partition_dim must be 0 or 1, got {partition_dim}")
