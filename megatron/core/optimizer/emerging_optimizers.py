@@ -14,13 +14,18 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Literal, Optional, get_args
 
 import torch
-from emerging_optimizers import registry
+from emerging_optimizers import mixin as opt_mixin
+from emerging_optimizers import registry, utils
 from emerging_optimizers.orthogonalized_optimizers import (
     AdaptiveMuon,
     OrthogonalizedOptimizer,
     get_muon_scale_factor,
 )
-from emerging_optimizers.orthogonalized_optimizers.muon_utils import NSCoeffT, newton_schulz_tp
+from emerging_optimizers.orthogonalized_optimizers.muon_utils import (
+    NSCoeffT,
+    get_muon_scale_factor,
+    newton_schulz_tp,
+)
 
 # It is necessary to import optimizers for the registry to work.
 from emerging_optimizers.scalar_optimizers import Lion  # pylint: disable=unused-import
@@ -34,13 +39,7 @@ from megatron.core.utils import get_pg_rank, get_pg_size, log_single_rank
 from .optimizer_config import ParamKey, ParamPredicate
 
 HAVE_EMERGING_OPTIMIZERS = True
-from emerging_optimizers import mixin as opt_mixin
-from emerging_optimizers import registry, utils
-from emerging_optimizers.orthogonalized_optimizers.muon_utils import (
-    NSCoeffT,
-    get_muon_scale_factor,
-    newton_schulz_tp,
-)
+
 from emerging_optimizers.scalar_optimizers import update_functions
 from emerging_optimizers.soap import soap, soap_utils, tp_utils
 from emerging_optimizers.utils import FP32MatmulPrecT
