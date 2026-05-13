@@ -306,6 +306,9 @@ class OptimizerConfig:
     soap_use_kl_shampoo: bool = True
     """Whether to use the KL-Shampoo preconditioner."""
 
+    soap_use_eigh: bool = False
+    """Whether to use eigh for SOAP optimizer."""
+
     adaptive_muon_moment2_method: str = "adamuon"
     """The method to use for the moment2 update in Adaptive Muon optimizer."""
 

@@ -2338,6 +2338,9 @@ def _add_regularization_args(parser):
                        '"apply_wd_to_qk_layernorm": additionally apply weight decay to '
                        'qk layernorm as a special case.'
                        'DEPRECATED. Please use --apply-wd-to-qk-layernorm instead. ')
+
+    group.add_argument('--soap-use-eigh', action='store_true',
+                       help='Whether to use eigh for SOAP optimizer.')
     return parser
 
 
