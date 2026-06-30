@@ -801,12 +801,12 @@ class TransformerConfig(ModelParallelConfig):
     GEMM feature introduced since CUTLASS 2.8 (https://github.com/fanshiqing/grouped_gemm).
     """
 
-    moe_single_grouped_weight: bool = False
+    moe_single_grouped_weight: bool = True
     """When using TE GroupedLinear for MoE experts, store expert weights as a single grouped
     parameter via Transformer Engine's `GroupedTensor`. Requires ``moe_grouped_gemm=True``.
     """
 
-    moe_single_grouped_bias: bool = False
+    moe_single_grouped_bias: bool = True
     """When using TE GroupedLinear for MoE experts, store expert biases as a single grouped
     parameter via Transformer Engine's `GroupedTensor`. Requires ``moe_grouped_gemm=True``
     and ``add_bias_linear=True``."""
