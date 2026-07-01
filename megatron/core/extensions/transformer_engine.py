@@ -1770,11 +1770,16 @@ if HAVE_TE and is_te_min_version("1.9.0.dev0"):
                 bias=bias,
                 return_bias=self.te_return_bias,
                 parallel_mode=parallel_mode,
+                single_grouped_weight=True,
                 **extra_kwargs,
             )
             self.te_quant_params: Optional[TEQuantizationParams] = None
             for param in self.parameters():
                 setattr(param, "allreduce", not (is_expert and self.expert_parallel))
+
+            for param_name, param in self.named_parameters(recurse=False):
+                if param_name.startswith("weight"):
+                    setattr(param, "is_grouped_linear_weight", True)
 
             # Explicitly stamp partition_dim and partition_stride on expert weight
             # tensors when explicit_expert_comm cleared parallel_mode.  TE ≤2.12
