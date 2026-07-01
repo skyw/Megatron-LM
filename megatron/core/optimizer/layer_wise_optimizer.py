@@ -45,6 +45,8 @@ def is_managed_by_layer_wise_optimizer(param: torch.nn.Parameter) -> bool:
     Mirrors the routing rule applied by ``_get_param_groups`` /
     ``default_param_overrides`` for Muon.
     """
+    if getattr(param, 'is_grouped_linear_weight', False):
+        return True
     if not param.dim() == 2:
         return False
     if getattr(param, 'is_embedding_or_output_parameter', False):

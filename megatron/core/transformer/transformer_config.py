@@ -806,7 +806,7 @@ class TransformerConfig(ModelParallelConfig):
     parameter via Transformer Engine's `GroupedTensor`. Requires ``moe_grouped_gemm=True``.
     """
 
-    moe_single_grouped_bias: bool = True
+    moe_single_grouped_bias: bool = False
     """When using TE GroupedLinear for MoE experts, store expert biases as a single grouped
     parameter via Transformer Engine's `GroupedTensor`. Requires ``moe_grouped_gemm=True``
     and ``add_bias_linear=True``."""
@@ -1479,18 +1479,18 @@ class TransformerConfig(ModelParallelConfig):
                     "moe_single_grouped_weight and moe_single_grouped_bias require "
                     f"transformer-engine>=2.14.0, but your version is {get_te_version()}."
                 )
-        if self.moe_single_grouped_weight:
-            # The dist-optimizer's quantized-param shard path on the single-grouped-weight
-            # storage is only validated for fp8 mode with the mxfp8 recipe today; other
-            # combinations have a known numerical issue tracked in upstream PR
-            # NVIDIA/Megatron-LM#4621. Reject at construction time so users don't silently
-            # train on a broken numerical path. (moe_single_grouped_bias is not gated:
-            # biases aren't quantized, so they don't enter the buggy code path.)
-            if self.fp4 or not self.fp8 or self.fp8_recipe != Fp8Recipe.mxfp8:
-                raise ValueError(
-                    "moe_single_grouped_weight is currently supported only with fp8 mode "
-                    "and fp8_recipe='mxfp8'."
-                )
+        # if self.moe_single_grouped_weight:
+        # The dist-optimizer's quantized-param shard path on the single-grouped-weight
+        # storage is only validated for fp8 mode with the mxfp8 recipe today; other
+        # combinations have a known numerical issue tracked in upstream PR
+        # NVIDIA/Megatron-LM#4621. Reject at construction time so users don't silently
+        # train on a broken numerical path. (moe_single_grouped_bias is not gated:
+        # biases aren't quantized, so they don't enter the buggy code path.)
+        # if self.fp4 or not self.fp8 or self.fp8_recipe != Fp8Recipe.mxfp8:
+        #     raise ValueError(
+        #         "moe_single_grouped_weight is currently supported only with fp8 mode "
+        #         "and fp8_recipe='mxfp8'."
+        #     )
         if self.moe_single_grouped_bias and not self.add_bias_linear:
             raise ValueError("moe_single_grouped_bias requires add_bias_linear=True.")
 
