@@ -1391,20 +1391,15 @@ def test_soap_optimizer_multiple_steps():
 
 
 @skip_no_soap
-@pytest.mark.parametrize("use_kl_shampoo", [True, False])
-def test_soap_optimizer_kl_shampoo(use_kl_shampoo):
-    """Test SOAP optimizer with and without KL-Shampoo preconditioner."""
+def test_soap_optimizer_kl_shampoo():
+    """Test SOAP optimizer with the KL-Shampoo preconditioner."""
 
     model = torch.nn.Linear(60, 30, bias=False, dtype=torch.float32, device='cuda')
     model.requires_grad_(True)
     model.weight.data.fill_(1.0)
 
     optimizer = SOAP(
-        params=[model.weight],
-        lr=0.01,
-        betas=(0.9, 0.999),
-        shampoo_beta=0.95,
-        use_kl_shampoo=use_kl_shampoo,
+        params=[model.weight], lr=0.01, betas=(0.9, 0.999), shampoo_beta=0.95, use_kl_shampoo=True
     )
 
     input_tensor = torch.randn(16, 60, dtype=torch.float32, device='cuda')
@@ -1417,7 +1412,7 @@ def test_soap_optimizer_kl_shampoo(use_kl_shampoo):
 
     assert not torch.equal(
         model.weight.data, original_weight
-    ), f"Weight should be updated with use_kl_shampoo={use_kl_shampoo}"
+    ), "Weight should be updated with use_kl_shampoo=True"
 
 
 @skip_no_soap
@@ -1480,7 +1475,6 @@ class TestSoapOptimizerMultiRank:
             bf16=True,
             use_distributed_optimizer=False,
             soap_shampoo_beta=0.95,
-            soap_use_kl_shampoo=True,
         )
 
         optimizer = get_megatron_optimizer(

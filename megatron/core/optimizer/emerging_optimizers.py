@@ -10,6 +10,7 @@ To add a new emerging optimizer:
 
 import inspect
 import logging
+import os
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Literal, Optional, get_args
 
@@ -39,6 +40,7 @@ except ImportError:
     HAVE_EMERGING_OPTIMIZERS = False
     OrthogonalizedOptimizer = object
     AdaptiveMuon = object
+    SOAP = object
 
 
 logger = logging.getLogger(__name__)
@@ -377,6 +379,38 @@ class TensorParallelAdaptiveMuon(TensorParallelMuon, AdaptiveMuon):
         return AdaptiveMuon.step(self, closure)
 
 
+class KlSoap(SOAP):
+    """Multi stream KL corrected SOAP"""
+
+    def __init__(
+        self,
+        params: ParamsT,
+        lr: float,
+        betas: tuple[float, float] = (0.9, 0.95),
+        shampoo_beta: float = 0.95,
+        eps: float = 1e-8,
+        weight_decay: float = 0.01,
+        *,
+        num_streams: int | None = None,
+    ) -> None:
+        if num_streams is None:
+            num_streams = int(os.getenv("CUDA_DEVICE_MAX_CONNECTIONS", 8))
+        stream_list = []
+        if num_streams is not None and num_streams != 0:
+            stream_list = [torch.cuda.Stream() for _ in range(num_streams)]
+        super().__init__(
+            params,
+            lr,
+            betas,
+            shampoo_beta,
+            eps,
+            weight_decay,
+            fp32_matmul_prec="highest",
+            use_kl_shampoo=True,
+            stream_list=stream_list,
+        )
+
+
 def _kwargs_from_config(optimizer_cls: type, prefix: str, config) -> Dict[str, Any]:
     """Match ``optimizer_cls.__init__`` parameters to config attributes.
 
@@ -452,6 +486,7 @@ _EMERGING_OPTIMIZERS.update(
                 ): {'optimizer': 'adam'}
             },
         ),
+        "soap": EmergingOptimizerEntry(optimizer_cls=KlSoap),
     }
 )
 
