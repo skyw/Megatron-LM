@@ -33,6 +33,8 @@ try:
 
     # It is necessary to import optimizers for the registry to work.
     from emerging_optimizers.scalar_optimizers import Lion  # pylint: disable=unused-import
+    from emerging_optimizers.shampoo import KlShampoo
+    from emerging_optimizers.shampoo.okls import OKLS
     from emerging_optimizers.soap import SOAP  # pylint: disable=unused-import
 
     HAVE_EMERGING_OPTIMIZERS = True
@@ -41,6 +43,8 @@ except ImportError:
     OrthogonalizedOptimizer = object
     AdaptiveMuon = object
     SOAP = object
+    KlShampoo = object
+    OKLS = object
 
 
 logger = logging.getLogger(__name__)
@@ -448,6 +452,28 @@ def _adaptive_muon_config_to_kwargs(config, model_chunks, pg_collection) -> Dict
     return kwargs
 
 
+def _shampoo_family_config_to_kwargs(optimizer_cls, prefix, config) -> Dict[str, Any]:
+    """Convert OptimizerConfig to Shampoo-family (KlShampoo, OKLS) constructor kwargs.
+
+    Reuses ``adam_beta1``/``adam_beta2`` as ``momentum``/``shampoo_beta`` so no new
+    optimizer-specific config fields are needed.
+    """
+    kwargs = _kwargs_from_config(optimizer_cls, prefix, config)
+    kwargs["momentum"] = config.adam_beta1
+    kwargs["shampoo_beta"] = config.adam_beta2
+    return kwargs
+
+
+def _kl_shampoo_config_to_kwargs(config, model_chunks, pg_collection) -> Dict[str, Any]:
+    """Convert OptimizerConfig to KlShampoo constructor kwargs."""
+    return _shampoo_family_config_to_kwargs(KlShampoo, "kl_shampoo", config)
+
+
+def _okls_config_to_kwargs(config, model_chunks, pg_collection) -> Dict[str, Any]:
+    """Convert OptimizerConfig to OKLS constructor kwargs."""
+    return _shampoo_family_config_to_kwargs(OKLS, "okls", config)
+
+
 def _default_adam_based_eopt_config_to_kwargs(
     eopt_name, config, model_chunks, pg_collection
 ) -> Dict[str, Any]:
@@ -487,6 +513,12 @@ _EMERGING_OPTIMIZERS.update(
             },
         ),
         "soap": EmergingOptimizerEntry(optimizer_cls=KlSoap),
+        "kl_shampoo": EmergingOptimizerEntry(
+            optimizer_cls=KlShampoo, config_to_kwargs=_kl_shampoo_config_to_kwargs
+        ),
+        "okls_v3": EmergingOptimizerEntry(
+            optimizer_cls=OKLS, config_to_kwargs=_okls_config_to_kwargs
+        ),
     }
 )
 

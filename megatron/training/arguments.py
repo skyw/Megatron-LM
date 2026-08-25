@@ -3695,7 +3695,17 @@ def _add_training_args(parser):
         '--optimizer',
         type=str,
         default='adam',
-        choices=['adam', 'sgd', 'muon', 'dist_muon', 'lion', 'soap', 'adaptive_muon'],
+        choices=[
+            'adam',
+            'sgd',
+            'muon',
+            'dist_muon',
+            'lion',
+            'soap',
+            'adaptive_muon',
+            'kl_shampoo',
+            'okls_v3',
+        ],
         help='Optimizer function. '
         'Note: dist_muon is deprecated; use --optimizer muon '
         'with --use-distributed-optimizer instead.',
